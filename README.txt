@@ -14,3 +14,10 @@ https://tubular-semolina-81d08a.netlify.app
 https://tubular-semolina-81d08a.netlify.app/?admin=HY2u2uroIoOGPATYc7kJln-OWQaxnv3V
 
 הערה: זו הפרדת ממשק מקומית. סנכרון רכיבות בין כל המכשירים עדיין דורש מסד נתונים משותף.
+
+
+V6 GitHub Pages:
+- כל נתיבי ה-PWA תוקנו לעבודה מתוך /rochvim-venehanim/
+- manifest, service worker והאייקונים עובדים ב-GitHub Pages
+- נוסף .nojekyll
+- אמורה להופיע אפשרות התקנה כאפליקציה אמיתית לאחר שהקבצים יוחלפו ב-GitHub

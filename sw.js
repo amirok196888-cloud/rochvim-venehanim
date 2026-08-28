@@ -1,11 +1,11 @@
-const CACHE = 'rochvim-venehanim-v5';
+const CACHE = 'rochvim-venehanim-v6';
 const APP_SHELL = [
-  '/',
-  '/index.html',
-  '/manifest.webmanifest',
-  '/logo.png',
-  '/icon-192.png',
-  '/icon-512.png'
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './logo.png',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', event => {
@@ -31,6 +31,6 @@ self.addEventListener('fetch', event => {
         caches.open(CACHE).then(cache => cache.put(event.request, copy));
         return response;
       })
-      .catch(() => caches.match(event.request).then(r => r || caches.match('/index.html')))
+      .catch(() => caches.match(event.request).then(r => r || caches.match('./index.html')))
   );
 });
