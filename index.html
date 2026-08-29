@@ -91,7 +91,7 @@ body.admin-mode .admin-card{display:block!important}
     <div><h2>ברוכים הבאים 👋</h2><p>רכיבות, מסלולים, קבצי GPX, רוכבים, WhatsApp והקלטת מסלול — במקום אחד.</p></div>
     <img src="logo.png" alt="">
   </div>
-  <div class="small" style="text-align:center;margin:8px 0">גרסה 10</div><div id="installBox" class="install"><b>📲 התקן את האפליקציה</b><div class="small" style="margin:5px 0 10px">התקן את “רוכבים ונהנים” בטלפון.</div><button id="installBtn" class="btn block">התקן עכשיו</button><div id="installHelp" class="small" style="display:none;margin-top:8px">אם חלון ההתקנה לא נפתח: פתח את תפריט הדפדפן ⋮ ובחר “הוסף דף אל” / “התקן אפליקציה”.</div></div>
+  <div class="small" style="text-align:center;margin:8px 0">גרסה 11</div><div id="installBox" class="install"><b>📲 התקן את האפליקציה</b><div class="small" style="margin:5px 0 10px">התקן את “רוכבים ונהנים” בטלפון.</div><button id="installBtn" class="btn block">התקן עכשיו</button><div id="installHelp" class="small" style="display:none;margin-top:8px">אם חלון ההתקנה לא נפתח: פתח את תפריט הדפדפן ⋮ ובחר “הוסף דף אל” / “התקן אפליקציה”.</div></div>
   <div class="card" style="margin-top:14px;border-right:4px solid var(--green)">
   <div class="ride-title"><b>💬 קבוצת WhatsApp</b><span class="badge">רוכבים ונהנים</span></div>
   <p class="small">כניסה ישירה לקבוצת הרכיבה ב‑WhatsApp.</p>
@@ -337,6 +337,14 @@ async function updateSharedRide(r){
   if(!res.ok) throw new Error(await res.text());
   const out=await res.json(); if(!out.length) throw new Error('not owner'); return out;
 }
+async function claimSharedRide(id){
+  const name=getProfileName(); if(!name) throw new Error('profile required');
+  const url=`${RIDES_API}?id=eq.${encodeURIComponent(id)}&creator_id=is.null`;
+  const row={creator_id:getDeviceId(),creator_name:name};
+  const res=await fetch(url,{method:'PATCH',headers:sbHeaders({'Content-Type':'application/json','Prefer':'return=representation'}),body:JSON.stringify(row)});
+  if(!res.ok) throw new Error(await res.text());
+  const out=await res.json(); if(!out.length) throw new Error('already claimed'); return out;
+}
 async function deleteSharedRide(id){
   const url=`${RIDES_API}?id=eq.${encodeURIComponent(id)}&creator_id=eq.${encodeURIComponent(getDeviceId())}`;
   const res=await fetch(url,{method:'DELETE',headers:sbHeaders({'Prefer':'return=representation'})});
@@ -366,7 +374,7 @@ function rideHtml(r, compact=false){
     <button class="btn ${r.joined?'secondary':''}" data-join="${r.id}">${r.joined?'✓ הצטרפת':'אני מצטרף'}</button>
     <a class="btn green" href="https://chat.whatsapp.com/DDvoj1Bnoyb4xGf3kk8Wij?s=cl&p=a&mlu=4" target="_blank" rel="noopener">WhatsApp לקבוצה</a>
     ${r.gpxName?`<span class="badge">GPX: ${esc(r.gpxName)}</span>`:''}
-    ${owner?`<button class="btn orange" data-editride="${r.id}">עריכת רכיבה</button><button class="btn red" data-delride="${r.id}">מחיקת רכיבה</button>`:''}
+    ${owner?`<button class="btn orange" data-editride="${r.id}">עריכת רכיבה</button><button class="btn red" data-delride="${r.id}">מחיקת רכיבה</button>`:(!r.creatorId?`<button class="btn secondary" data-claimride="${r.id}">זו רכיבה שאני פתחתי</button>`:'')}
   </div>`}
  </div>`;
 }
@@ -397,13 +405,14 @@ function openRide(id){
       <a class="btn orange" href="${esc(wazeUrlFor(r))}" target="_blank" rel="noopener">📍 פתח ב-Waze</a>
       ${r.gpxData?`<button class="btn" data-downloadgpx="${r.id}">🗺️ פתח / הורד GPX</button>`:r.gpxName?`<button class="btn secondary" data-downloadgpx="${r.id}">🗺️ GPX: ${esc(r.gpxName)}</button>`:`<button class="btn secondary" disabled>🗺️ לא צורף GPX</button>`}
       <a class="btn green" href="https://chat.whatsapp.com/DDvoj1Bnoyb4xGf3kk8Wij?s=cl&p=a&mlu=4" target="_blank" rel="noopener">💬 WhatsApp</a>
-      ${owner?`<button class="btn orange" data-detailedit="${r.id}">✏️ עריכת רכיבה</button><button class="btn red" data-detaildel="${r.id}">🗑️ מחיקת רכיבה</button>`:''}
+      ${owner?`<button class="btn orange" data-detailedit="${r.id}">✏️ עריכת רכיבה</button><button class="btn red" data-detaildel="${r.id}">🗑️ מחיקת רכיבה</button>`:(!r.creatorId?`<button class="btn secondary" data-detailclaim="${r.id}">זו רכיבה שאני פתחתי</button>`:'')}
     </div>
   </div>`;
   $$('[data-downloadgpx]').forEach(b=>b.onclick=()=>downloadRideGpx(b.dataset.downloadgpx));
   $$('[data-detailjoin]').forEach(b=>b.onclick=()=>toggleJoin(b.dataset.detailjoin,true));
   $$('[data-detailedit]').forEach(b=>b.onclick=()=>startEditRide(b.dataset.detailedit));
   $$('[data-detaildel]').forEach(b=>b.onclick=()=>removeRide(b.dataset.detaildel));
+  $$('[data-detailclaim]').forEach(b=>b.onclick=()=>claimRide(b.dataset.detailclaim,true));
   go('rideDetail');
 }
 $('#backToRides').onclick=()=>go('rides');
@@ -422,6 +431,13 @@ async function toggleJoin(id,reopen=false){
     await loadSharedRides(); if(reopen) openRide(id);
   }catch(e){console.error(e);toast('לא ניתן לשמור את ההצטרפות')}
 }
+async function claimRide(id,reopen=false){
+  const r=rides.find(x=>x.id==id); if(!r)return;
+  if(r.creatorId){toast('לרכיבה הזאת כבר יש פותח רשום');return}
+  const name=getProfileName(); if(!name){go('profile');toast('יש לשמור שם בפרופיל לפני לקיחת בעלות');return}
+  if(!confirm(`לאשר שאתה פתחת את הרכיבה: ${r.name}?`))return;
+  try{await claimSharedRide(id);await loadSharedRides();toast('הרכיבה שויכה אליך');if(reopen)openRide(id)}catch(e){console.error(e);toast('לא ניתן לשייך את הרכיבה')};
+}
 async function removeRide(id){
   const r=rides.find(x=>x.id==id);if(!isOwner(r)){toast('רק מי שפתח את הרכיבה יכול למחוק אותה');return}
   if(!confirm('למחוק את הרכיבה?'))return;
@@ -432,6 +448,7 @@ function bindRideActions(){
  $$('[data-join]').forEach(b=>b.onclick=e=>{e.stopPropagation();toggleJoin(b.dataset.join)});
  $$('[data-editride]').forEach(b=>b.onclick=e=>{e.stopPropagation();startEditRide(b.dataset.editride)});
  $$('[data-delride]').forEach(b=>b.onclick=e=>{e.stopPropagation();removeRide(b.dataset.delride)});
+ $$('[data-claimride]').forEach(b=>b.onclick=e=>{e.stopPropagation();claimRide(b.dataset.claimride)});
 }
 let editingRideId=null;
 function resetRideForm(){
