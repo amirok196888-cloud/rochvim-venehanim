@@ -1,73 +1,582 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<meta name="theme-color" content="#101827" />
-<title>מחירלי</title>
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
-<link rel="manifest" href="manifest.webmanifest" />
-<link rel="stylesheet" href="style.css" />
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#08111f">
+<meta name="application-name" content="רוכבים ונהנים">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<title>רוכבים ונהנים</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<style>
+:root{
+  --bg:#07111f;--panel:#0d1a2b;--panel2:#122238;--line:#243852;--text:#f4f7fb;--muted:#9fb0c6;
+  --teal:#14c8c9;--orange:#ff9f1c;--green:#2bd67b;--red:#ef5350;--blue:#3ea6ff;--shadow:0 10px 28px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,#07111f,#091423 35%,#07111f);color:var(--text);
+font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;min-height:100vh}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.app{max-width:860px;margin:auto;padding-bottom:86px}
+.topbar{display:flex;align-items:center;gap:12px;padding:14px 16px;position:sticky;top:0;z-index:30;
+background:rgba(7,17,31,.94);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.06)}
+.logo{width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.12)}
+.brand h1{margin:0;font-size:22px}.brand p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.content{padding:14px}
+.hero{background:linear-gradient(135deg,rgba(20,200,201,.18),rgba(62,166,255,.08));border:1px solid rgba(20,200,201,.28);
+border-radius:20px;padding:18px;box-shadow:var(--shadow);display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center}
+.hero img{width:92px;height:92px;border-radius:50%;object-fit:cover}
+.hero h2{margin:0 0 8px;font-size:24px}.hero p{margin:0;color:#c8d4e2;line-height:1.5}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:14px 0}
+.tile,.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+.tile{padding:18px;text-align:center;min-height:110px;display:flex;flex-direction:column;justify-content:center;gap:7px}
+.tile b{font-size:18px}.tile span{font-size:30px}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:20px 2px 10px}
+.section-head h3{margin:0;font-size:19px}.small{font-size:13px;color:var(--muted)}
+.btn{border:none;border-radius:12px;padding:11px 14px;background:var(--teal);color:#04242a;font-weight:800}
+.btn.secondary{background:#17283d;color:var(--text);border:1px solid var(--line)}
+.btn.orange{background:var(--orange);color:#281600}
+.btn.red{background:var(--red);color:#fff}.btn.green{background:var(--green);color:#062315}
+.btn.block{width:100%}.btn:disabled{opacity:.5;cursor:not-allowed}
+.card{padding:14px;margin-bottom:10px}.ride-card{cursor:pointer}.ride-card:active{transform:scale(.995)}
+.ride-title{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.badge{font-size:12px;padding:4px 8px;border-radius:999px;background:#17304a;color:#cfe8ff;border:1px solid #274767}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin:9px 0;color:#c9d6e6;font-size:13px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.avatar{width:46px;height:46px;border-radius:50%;object-fit:cover;background:#18304a;border:1px solid var(--line)}
+.rider{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+.rider h4{margin:0 0 4px}.rider p{margin:0;color:var(--muted);font-size:13px}
+form{display:grid;gap:11px}.field{display:grid;gap:6px}.field label{font-size:13px;color:#c8d6e5;font-weight:700}
+input,select,textarea{width:100%;background:#0b1727;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px 13px;outline:none}
+textarea{min-height:90px;resize:vertical} input:focus,select:focus,textarea:focus{border-color:var(--teal)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tabpage{display:none}.tabpage.active{display:block}
+.bottom{position:fixed;z-index:40;bottom:0;left:0;right:0;background:rgba(7,17,31,.97);border-top:1px solid var(--line);backdrop-filter:blur(10px)}
+.bottom-inner{max-width:860px;margin:auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.navbtn{background:none;border:0;color:#a9b8ca;padding:10px 4px;font-size:13px;font-weight:900;min-height:68px}.navbtn span{display:block;font-size:22px;margin-bottom:2px}
+.navbtn.active{color:var(--teal)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;background:#10243a;border:1px solid #2a4b6d;padding:10px 14px;border-radius:12px;display:none;z-index:60}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.stat{background:#0b1727;border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+.stat b{display:block;font-size:20px}.stat span{color:var(--muted);font-size:12px}
+.kkl{border-right:4px solid var(--orange)}
+.record-box{background:linear-gradient(135deg,#0d2235,#102c32);border:1px solid #1c5962;border-radius:18px;padding:16px}
+.timer{font-size:36px;font-weight:900;text-align:center;margin:6px 0}.gps-status{text-align:center;color:var(--muted);font-size:13px}
+.track{height:180px;background:#08131f;border:1px dashed #35516f;border-radius:15px;margin:12px 0;display:grid;place-items:center;color:#7890aa;padding:12px;text-align:center}
+.install{background:#10263d;border:1px solid #294766;border-radius:14px;padding:12px;margin:12px 0;display:none}
+hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+@media(min-width:700px){.grid{grid-template-columns:repeat(4,1fr)}.content{padding:20px}.hero{padding:22px}}
+
+.admin-only{display:none!important}
+body.admin-mode .admin-only{display:inline-flex!important}
+body.admin-mode .admin-only.block{display:flex!important}
+body.admin-mode .admin-card{display:block!important}
+.admin-card{display:none}
+</style>
 </head>
 <body>
-<div class="app-shell">
-<header class="topbar"><div class="brand"><div class="logo"><img src="icon.png" alt="מחירלי" style="width:100%;height:100%;object-fit:cover;border-radius:16px"></div><div><h1>מחירלי</h1><p>מבקשים. מקבלים הצעות. בוחרים.</p></div></div></header>
-<main>
-<section id="authView" class="view active">
-  <div class="hero card"><h2>כניסה לאפליקציה</h2><p>המידע נשמר עכשיו בענן.</p></div>
-  <form id="authForm" class="card form-card">
-    <label>אימייל<input id="authEmail" type="email" required autocomplete="email" /></label>
-    <label>סיסמה<input id="authPassword" type="password" required minlength="6" autocomplete="current-password" /></label>
-    <label>אני נרשם בתור<select id="authRole"><option value="customer">לקוח</option><option value="professional">בעל מקצוע</option></select></label>
-    <label>שם<input id="authName" placeholder="שם פרטי / שם בעל העסק" /></label>
-    <button class="primary big" type="submit">כניסה</button>
-    <button id="signupBtn" class="secondary big" type="button">הרשמה חדשה</button>
-    <p id="authNote" class="note"></p>
-  </form>
+<div class="app">
+<header class="topbar">
+  <img class="logo" src="logo.png" alt="לוגו רוכבים ונהנים">
+  <div class="brand"><h1>רוכבים ונהנים</h1><p>רוכבים ביחד • נהנים מהדרך • לא משאירים אף אחד מאחור</p></div>
+</header>
+
+<main class="content">
+<section id="home" class="tabpage active">
+  <div class="hero">
+    <div><h2>ברוכים הבאים 👋</h2><p>רכיבות, מסלולים, קבצי GPX, רוכבים, WhatsApp והקלטת מסלול — במקום אחד.</p></div>
+    <img src="logo.png" alt="">
+  </div>
+  <div class="small" style="text-align:center;margin:8px 0">גרסה 13</div><div id="installBox" class="install"><b>📲 התקן את האפליקציה</b><div class="small" style="margin:5px 0 10px">התקן את “רוכבים ונהנים” בטלפון.</div><button id="installBtn" class="btn block">התקן עכשיו</button><div id="installHelp" class="small" style="display:none;margin-top:8px">אם חלון ההתקנה לא נפתח: פתח את תפריט הדפדפן ⋮ ובחר “הוסף דף אל” / “התקן אפליקציה”.</div></div>
+  <div class="card" style="margin-top:14px;border-right:4px solid var(--green)">
+  <div class="ride-title"><b>💬 קבוצת WhatsApp</b><span class="badge">רוכבים ונהנים</span></div>
+  <p class="small">כניסה ישירה לקבוצת הרכיבה ב‑WhatsApp.</p>
+  <div class="actions">
+    <a class="btn green" href="https://chat.whatsapp.com/DDvoj1Bnoyb4xGf3kk8Wij?s=cl&p=a&mlu=4" target="_blank" rel="noopener">פתח את קבוצת WhatsApp</a>
+  </div>
+</div>
+<div class="grid">
+    <button class="tile" data-go="rides"><span>🚵</span><b>רכיבות</b><small>הצטרפות ויצירה</small></button>
+    <button class="tile" data-go="routes"><span>🗺️</span><b>מסלולים</b><small>GPX וקק״ל</small></button>
+    <button class="tile" data-go="riders"><span>👥</span><b>רוכבים</b><small>פרופילים וחברים</small></button>
+    <button class="tile" data-go="record"><span>⏺️</span><b>הקלטה</b><small>GPS ויצוא GPX</small></button>
+  </div>
+  <div class="section-head"><h3>הרכיבה הקרובה 🔥</h3><button class="btn secondary" data-go="rides">לכל הרכיבות</button></div>
+  <div id="nextRide"></div>
 </section>
 
-<section id="homeView" class="view">
-  <div class="hero card"><h2>מה אתה צריך?</h2><p>פרסם בקשה בחינם וקבל עד 3 הצעות מבעלי מקצוע.</p>
-    <div class="role-switch"><button class="role active" data-role="customer">אני לקוח</button><button class="role" data-role="pro">אני בעל מקצוע</button></div>
-    <button id="logoutBtn" class="secondary">התנתק</button>
+<section id="rides" class="tabpage">
+  <div class="section-head"><h3>רכיבות</h3><button class="btn" id="toggleRideForm">＋ צור רכיבה</button></div>
+  <div id="rideFormWrap" class="card" style="display:none">
+    <div class="section-head" style="margin-top:0"><h3 id="rideFormTitle">פתיחת רכיבה חדשה</h3><button type="button" class="btn secondary" id="cancelRideEdit">ביטול</button></div>
+    <form id="rideForm">
+      <div class="field"><label>שם הרכיבה</label><input id="rideName" required placeholder="למשל: שישי בבן שמן"></div>
+      <div class="two"><div class="field"><label>תאריך</label><input id="rideDate" type="date" required></div><div class="field"><label>שעה</label><input id="rideTime" type="time" required></div></div>
+      <div class="field"><label>נקודת מפגש / אזור</label><input id="ridePlace" required placeholder="חניון מצפה מודיעין"></div>
+      <div class="field">
+        <label>קישור Waze לנקודת המפגש (אופציונלי)</label>
+        <input id="rideWaze" type="url" inputmode="url" placeholder="הדבק כאן קישור ששיתפת מ-Waze">
+        <div class="small">אם לא תדביק קישור, האפליקציה תנסה לפתוח ב-Waze את שם נקודת המפגש.</div>
+      </div>
+      <div class="two"><div class="field"><label>מרחק בק״מ</label><input id="rideKm" type="number" min="0" step="0.1"></div><div class="field"><label>רמת קושי</label><select id="rideLevel"><option>קל</option><option selected>בינוני</option><option>קשה</option><option>טכני</option></select></div></div>
+      <div class="field"><label>הערות</label><textarea id="rideNotes" placeholder="קצב, ציוד, זמן משוער..."></textarea></div>
+      <div class="field"><label>צרף GPX (אופציונלי)</label><input id="rideGpx" type="file" accept=".gpx,application/gpx+xml"></div>
+      <button class="btn block" id="rideSubmitBtn" type="submit">פרסם רכיבה</button>
+    </form>
   </div>
-  <div id="customerHome">
-    <div class="category-grid">
-      <button class="category" data-category="רכב"><span>🚗</span><b>רכב</b><small>צמיגים, מצבר, טיפול ועוד</small></button>
-      <button class="category" data-category="מיזוג"><span>❄️</span><b>מיזוג</b><small>תיקון, התקנה, ניקוי</small></button>
-      <button class="category" data-category="לבית"><span>🏠</span><b>לבית</b><small>אינסטלציה, חשמל, דודים</small></button>
-      <button class="category" data-category="הנדימן"><span>🔨</span><b>הנדימן</b><small>תלייה, הרכבה ותיקונים קטנים</small></button>
+  <div id="ridesList"></div>
+</section>
+
+
+<section id="rideDetail" class="tabpage">
+  <div class="section-head">
+    <h3>פרטי הרכיבה</h3>
+    <button class="btn secondary" id="backToRides">← חזרה לרכיבות</button>
+  </div>
+  <div id="rideDetailContent"></div>
+</section>
+
+<section id="routes" class="tabpage">
+  <div class="section-head"><h3>מסלולים</h3><button class="btn" id="toggleRouteForm" class="btn admin-only">＋ הוסף מסלול</button></div>
+  <div id="routeFormWrap" class="card admin-card" style="display:none">
+    <form id="routeForm">
+      <div class="field"><label>שם המסלול</label><input id="routeName" required></div>
+      <div class="field"><label>אזור</label><input id="routeArea" required></div>
+      <div class="two"><div class="field"><label>מרחק ק״מ</label><input id="routeKm" type="number" min="0" step="0.1"></div><div class="field"><label>טיפוס מ׳</label><input id="routeClimb" type="number" min="0"></div></div>
+      <div class="field"><label>רמת קושי</label><select id="routeLevel"><option>קל</option><option selected>בינוני</option><option>קשה</option><option>טכני</option></select></div>
+      <div class="field"><label>קובץ GPX</label><input id="routeGpx" type="file" accept=".gpx,application/gpx+xml"></div>
+      <button class="btn block" type="submit">שמור מסלול</button>
+    </form>
+  </div>
+
+  <div class="card kkl">
+    <b>🌲 סינגלים רשמיים של קק״ל</b>
+    <p class="small">במקום להעתיק קבצים בלי הרשאה, האפליקציה מפנה למקור הרשמי של קק״ל.</p>
+    <div class="actions">
+      <a class="btn orange" href="https://www.kkl.org.il/bike/" target="_blank" rel="noopener">פתח אתר אופניים קק״ל</a>
     </div>
-    <button id="newRequestBtn" class="primary big">+ פרסום בקשה</button><button id="myRequestsBtn" class="secondary big">הבקשות שלי</button>
   </div>
-  <div id="proHome" class="hidden">
-    <div class="credits card"><div><small>יתרת הצעות</small><strong id="creditCount">0</strong><span>הצעות זמינות</span></div><button id="buyCreditsBtn" class="primary">3 הצעות ב־15 ₪</button></div>
-    <button id="profileBtn" class="secondary big">פרופיל העסק שלי</button><button id="jobsBtn" class="primary big">עבודות זמינות</button>
+  <div id="routesList"></div>
+</section>
+
+<section id="riders" class="tabpage">
+  <div class="section-head"><h3>רוכבים</h3><span class="small">כל מי ששומר פרופיל מופיע כאן אוטומטית</span></div>
+  <div id="riderFormWrap" class="card admin-card" style="display:none!important">
+    <form id="riderForm">
+      <div class="field"><label>שם</label><input id="riderName" required></div>
+      <div class="field"><label>אזור</label><input id="riderArea"></div>
+      <div class="field"><label>סוג אופניים</label><input id="riderBike" placeholder="למשל: אופני הרים חשמליים"></div>
+      <div class="field"><label>רמת רכיבה</label><select id="riderLevel"><option>מתחיל</option><option selected>בינוני</option><option>מתקדם</option></select></div>
+      <div class="field"><label>מספר WhatsApp (אופציונלי)</label><input id="riderPhone" inputmode="tel" placeholder="05..."></div>
+      <button class="btn block" type="submit">הוסף רוכב</button>
+    </form>
+  </div>
+  <div id="ridersList"></div>
+</section>
+
+<section id="record" class="tabpage">
+  <div class="section-head"><h3>הקלטת רכיבה</h3><span class="small">דורש הרשאת מיקום</span></div>
+  <div class="record-box">
+    <div class="timer" id="timer">00:00:00</div>
+    <div class="gps-status" id="gpsStatus">מוכן להתחלה</div>
+    <div class="stats">
+      <div class="stat"><b id="recKm">0.00</b><span>ק״מ</span></div>
+      <div class="stat"><b id="recPoints">0</b><span>נקודות GPS</span></div>
+      <div class="stat"><b id="recSpeed">0.0</b><span>קמ״ש</span></div>
+    </div>
+    <div class="track" id="trackInfo">המסלול יוקלט באמצעות ה‑GPS של הטלפון.<br>בדפדפן ההקלטה עלולה להיעצר כשהאפליקציה ברקע או כשהמסך כבוי.</div>
+    <div class="actions">
+      <button class="btn green" id="startRec">▶ התחל הקלטה</button>
+      <button class="btn red" id="stopRec" disabled>■ סיים</button>
+      <button class="btn secondary" id="exportRec" disabled>שמור GPX</button>
+      <button class="btn secondary" id="rideFromRec" disabled>צור רכיבה מהמסלול</button>
+    </div>
   </div>
 </section>
 
-<section id="requestView" class="view"><div class="section-head"><button class="back">‹</button><h2>פרסום בקשה</h2></div>
-<form id="requestForm" class="card form-card">
-<label>תחום<select id="reqCategory" required><option value="">בחר תחום</option><option>רכב</option><option>מיזוג</option><option>לבית</option><option>הנדימן</option></select></label>
-<label>מה אתה צריך?<textarea id="reqText" required placeholder="לדוגמה: צריך לתלות טלוויזיה ושני מדפים"></textarea></label>
-<button type="button" id="voiceBtn" class="voice">🎤 דבר במקום להקליד</button><p id="voiceStatus" class="note"></p>
-<label>עיר / אזור<input id="reqCity" required placeholder="לדוגמה: נתניה" /></label>
-<label>תאריך רצוי<input id="reqDate" type="date" required /></label><label>שעה רצויה<input id="reqTime" type="time" /></label>
-<button class="primary big" type="submit">פרסם וקבל עד 3 הצעות</button><p class="note">פרסום הבקשה חינם.</p>
-</form></section>
+<section id="profile" class="tabpage">
+  <div class="card" style="text-align:center">
+    <img src="logo.png" alt="" style="width:110px;height:110px;border-radius:50%;object-fit:cover;border:3px solid var(--teal)">
+    <h3 style="margin-bottom:4px">הפרופיל שלי</h3>
+    <p class="small">הפרופיל נשמר בענן ומופיע אוטומטית ברשימת הרוכבים.</p>
+    <form id="profileForm" style="text-align:right;margin-top:14px">
+      <div class="field"><label>שם</label><input id="profileName" required placeholder="השם שיופיע ברכיבות"></div>
+      <div class="field"><label>אזור</label><input id="profileArea" placeholder="אזור מגורים"></div>
+      <div class="field"><label>אופניים</label><input id="profileBike" placeholder="סוג אופניים"></div>
+      <button class="btn block">שמור פרופיל</button>
+    </form>
+  </div>
+  <div class="card admin-card">
+    <b>⚙️ מצב מנהל פעיל</b>
+    <p class="small">אפשרויות יצירה ומחיקה מוצגות רק במכשיר שבו הופעל קישור המנהל הפרטי.</p>
+    <button class="btn secondary block" id="resetDemo">אפס נתוני הדגמה</button>
+    <button class="btn secondary block" id="adminLogout" style="margin-top:8px">צא ממצב מנהל</button>
+  </div>
+</section>
+</main>
+</div>
 
-<section id="requestsListView" class="view"><div class="section-head"><button class="back">‹</button><h2>הבקשות שלי</h2></div><div id="requestsList" class="stack"></div></section>
-<section id="offersView" class="view"><div class="section-head"><button class="back">‹</button><h2>הצעות שקיבלת</h2></div><div id="requestSummary" class="card"></div><div id="offersList" class="stack"></div><button id="moreOffersBtn" class="secondary big hidden">פתח סבב נוסף</button></section>
-<section id="proJobsView" class="view"><div class="section-head"><button class="back">‹</button><h2>עבודות זמינות</h2></div><div class="filter-row"><select id="jobFilter"><option value="הכל">כל התחומים</option><option>רכב</option><option>מיזוג</option><option>לבית</option><option>הנדימן</option></select></div><div id="jobsList" class="stack"></div></section>
-<section id="offerFormView" class="view"><div class="section-head"><button class="back">‹</button><h2>שליחת הצעה</h2></div><div id="jobSummary" class="card"></div>
-<form id="offerForm" class="card form-card"><label>סוג מחיר<select id="priceType"><option value="fixed">מחיר סופי</option><option value="range">טווח מחיר</option><option value="inspection">נדרשת בדיקה</option></select></label>
-<div id="singlePriceWrap"><label>מחיר / דמי בדיקה ₪<input id="offerPrice" inputmode="numeric" /></label></div><div id="rangePriceWrap" class="hidden two-cols"><label>מ־₪<input id="offerMin" inputmode="numeric" /></label><label>עד ₪<input id="offerMax" inputmode="numeric" /></label></div>
-<label>פירוט ההצעה<textarea id="offerText" placeholder="מה כולל המחיר, תנאים, אחריות וכו'"></textarea></label><label>תאריך הגעה מוצע<input id="offerDate" type="date" required /></label><label>שעת הגעה מוצעת<input id="offerTime" type="time" required /></label><button class="primary big" type="submit">שלח הצעה (הצעה אחת)</button></form></section>
-<section id="profileView" class="view"><div class="section-head"><button class="back">‹</button><h2>פרופיל העסק</h2></div><form id="profileForm" class="card form-card">
-<label>שם העסק<input id="bizName" required /></label><label>תחום עיקרי<select id="bizCategory"><option>רכב</option><option>מיזוג</option><option>לבית</option><option>הנדימן</option></select></label><label>על העסק<textarea id="bizAbout"></textarea></label><label>אזורי שירות<input id="bizArea" placeholder="נתניה, חדרה והשרון" /></label><label>טלפון<input id="bizPhone" inputmode="tel" /></label><button class="primary big" type="submit">שמור פרופיל</button></form></section>
-</main><div id="toast" class="toast"></div></div>
-<script src="app.js"></script>
-<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js"));}</script>
-</body></html>
+<div class="toast" id="toast"></div>
+
+<nav class="bottom">
+  <div class="bottom-inner">
+    <button class="navbtn active" data-go="home"><span>🏠</span>בית</button>
+    <button class="navbtn" data-go="rides"><span>🚵</span>רכיבות</button>
+    <button class="navbtn" data-go="routes"><span>🗺️</span>מסלולים</button>
+    <button class="navbtn" data-go="riders"><span>👥</span>רוכבים</button>
+    <button class="navbtn" data-go="profile"><span>👤</span>פרופיל</button>
+  </div>
+</nav>
+
+<script>
+const SUPABASE_URL = 'https://hyfyowovjsumwomqllqv.supabase.co';
+const SUPABASE_KEY = 'sb_publishable__SWjLBZaJ5rH7uGEn8jRFQ_namgeOkM';
+const RIDES_API = `${SUPABASE_URL}/rest/v1/rides`;
+const JOINERS_API = `${SUPABASE_URL}/rest/v1/ride_joiners`;
+const PROFILES_API = `${SUPABASE_URL}/rest/v1/rider_profiles`;
+const sbHeaders = (extra={}) => ({apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, ...extra});
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const LS = {
+  get(k, fallback){ try{return JSON.parse(localStorage.getItem(k)) ?? fallback}catch{return fallback}},
+  set(k,v){ localStorage.setItem(k,JSON.stringify(v)) }
+};
+
+const ADMIN_HASH='da7545077afd53a2339f38f05fa28110307b085fc7e422f6598199abf38ec04b';
+async function sha256Hex(text){
+  const data=new TextEncoder().encode(text);
+  const digest=await crypto.subtle.digest('SHA-256',data);
+  return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function initAdminMode(){
+  const params=new URLSearchParams(location.search);
+  const token=params.get('admin');
+  if(token){
+    if(await sha256Hex(token)===ADMIN_HASH){
+      localStorage.setItem('rv_admin','1');
+      params.delete('admin');
+      const q=params.toString();
+      history.replaceState(null,'',location.pathname+(q?'?'+q:'')+location.hash);
+    }
+  }
+  const isAdmin=localStorage.getItem('rv_admin')==='1';
+  document.body.classList.toggle('admin-mode',isAdmin);
+}
+
+const seed = {
+ rides:[
+  {id:1,name:"רכיבת שישי בן שמן",date:"2026-08-29",time:"07:00",place:"חניון מצפה מודיעין",km:24,level:"בינוני",notes:"מחכים לאחרון. קסדה חובה.",joined:false,people:8,gpxName:"",wazeUrl:"",gpxData:""},
+  {id:2,name:"כרמל – השולחה",date:"2026-09-04",time:"06:30",place:"חניון הכרמל",km:28,level:"קשה",notes:"סינגלים וקצב זורם.",joined:false,people:6,gpxName:""}
+ ],
+ riders:[
+  {id:1,name:"עמוס",area:"השרון",bike:"אופני הרים חשמליים",level:"בינוני"},
+  {id:2,name:"יוסי",area:"מרכז",bike:"אופני הרים",level:"מתקדם"},
+  {id:3,name:"דני",area:"שרון",bike:"אופני הרים חשמליים",level:"בינוני"}
+ ],
+ routes:[
+  {id:1,name:"סינגל בן שמן",area:"בן שמן",km:24,climb:600,level:"בינוני",gpxName:"",wazeUrl:"",gpxData:""},
+  {id:2,name:"כרמל – השולחה",area:"כרמל",km:28,climb:800,level:"קשה",gpxName:""}
+ ]
+};
+let rides=[], riders=[], routes=LS.get('rv_routes',seed.routes);
+function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function toast(t){const x=$('#toast');x.textContent=t;x.style.display='block';setTimeout(()=>x.style.display='none',2200)}
+function fmtDate(d){if(!d)return ''; const p=d.split('-'); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d}
+function go(id){
+  $$('.tabpage').forEach(x=>x.classList.toggle('active',x.id===id));
+  $$('.navbtn').forEach(x=>x.classList.toggle('active',x.dataset.go===id));
+  scrollTo({top:0,behavior:'smooth'});
+}
+$$('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
+
+async function loadSharedRides(){
+  try{
+    const [ridesRes, joinRes]=await Promise.all([
+      fetch(`${RIDES_API}?select=id,title,ride_date,ride_time,place,waze_url,km,level,notes,gpx_name,gpx_data,creator_name,creator_id&order=ride_date.asc,ride_time.asc`,{headers:sbHeaders()}),
+      fetch(`${JOINERS_API}?select=ride_id,device_id,rider_name,joined_at&order=joined_at.asc`,{headers:sbHeaders()})
+    ]);
+    if(!ridesRes.ok) throw new Error(await ridesRes.text());
+    if(!joinRes.ok) throw new Error(await joinRes.text());
+    const rows=await ridesRes.json(), joins=await joinRes.json();
+    const byRide=new Map();
+    joins.forEach(j=>{const k=String(j.ride_id);if(!byRide.has(k))byRide.set(k,[]);byRide.get(k).push(j)});
+    const myDevice=getDeviceId();
+    rides=rows.map(x=>{
+      const js=byRide.get(String(x.id))||[];
+      return {
+        id:x.id, name:x.title||'', date:x.ride_date||'', time:x.ride_time||'', place:x.place||'',
+        wazeUrl:x.waze_url||'', km:Number(x.km||0), level:x.level||'', notes:x.notes||'',
+        people:js.length, gpxName:x.gpx_name||'', gpxData:x.gpx_data||'',
+        creatorName:x.creator_name||'', creatorId:x.creator_id||'',
+        joiners:js.map(j=>({deviceId:j.device_id,name:j.rider_name||'רוכב'})),
+        joined:js.some(j=>j.device_id===myDevice)
+      };
+    });
+    renderRides();
+  }catch(err){
+    console.error(err); rides=LS.get('rv_rides',seed.rides); renderRides(); toast('אין חיבור לשרת — מוצגים נתונים מקומיים');
+  }
+}
+function getDeviceId(){let id=localStorage.getItem('rv_device_id');if(!id){id=(crypto.randomUUID?crypto.randomUUID():'dev-'+Date.now()+'-'+Math.random().toString(36).slice(2));localStorage.setItem('rv_device_id',id)}return id}
+function getProfileName(){const p=LS.get('rv_profile',null);return (p&&p.name||'').trim()}
+function isOwner(r){return !!r && !!r.creatorId && r.creatorId===getDeviceId()}
+async function insertSharedRide(r){
+  const row={id:r.id,title:r.name,ride_date:r.date||null,ride_time:r.time||null,place:r.place,waze_url:r.wazeUrl||null,km:r.km||0,level:r.level,notes:r.notes,gpx_name:r.gpxName||null,gpx_data:r.gpxData||null,creator_name:r.creatorName||'',creator_id:r.creatorId||''};
+  const res=await fetch(RIDES_API,{method:'POST',headers:sbHeaders({'Content-Type':'application/json','Prefer':'return=representation'}),body:JSON.stringify(row)});
+  if(!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+async function updateSharedRide(r){
+  const row={title:r.name,ride_date:r.date||null,ride_time:r.time||null,place:r.place,waze_url:r.wazeUrl||null,km:r.km||0,level:r.level,notes:r.notes,gpx_name:r.gpxName||null,gpx_data:r.gpxData||null,creator_name:r.creatorName||''};
+  const url=`${RIDES_API}?id=eq.${encodeURIComponent(r.id)}&creator_id=eq.${encodeURIComponent(getDeviceId())}`;
+  const res=await fetch(url,{method:'PATCH',headers:sbHeaders({'Content-Type':'application/json','Prefer':'return=representation'}),body:JSON.stringify(row)});
+  if(!res.ok) throw new Error(await res.text());
+  const out=await res.json(); if(!out.length) throw new Error('not owner'); return out;
+}
+async function claimSharedRide(id){
+  const name=getProfileName(); if(!name) throw new Error('profile required');
+  const url=`${RIDES_API}?id=eq.${encodeURIComponent(id)}&creator_id=is.null`;
+  const row={creator_id:getDeviceId(),creator_name:name};
+  const res=await fetch(url,{method:'PATCH',headers:sbHeaders({'Content-Type':'application/json','Prefer':'return=representation'}),body:JSON.stringify(row)});
+  if(!res.ok) throw new Error(await res.text());
+  const out=await res.json(); if(!out.length) throw new Error('already claimed'); return out;
+}
+async function deleteSharedRide(id){
+  const url=`${RIDES_API}?id=eq.${encodeURIComponent(id)}&creator_id=eq.${encodeURIComponent(getDeviceId())}`;
+  const res=await fetch(url,{method:'DELETE',headers:sbHeaders({'Prefer':'return=representation'})});
+  if(!res.ok) throw new Error(await res.text());
+  const out=await res.json(); if(!out.length) throw new Error('not owner');
+}
+async function joinSharedRide(id,name){
+  const row={ride_id:id,device_id:getDeviceId(),rider_name:name};
+  const res=await fetch(JOINERS_API,{method:'POST',headers:sbHeaders({'Content-Type':'application/json','Prefer':'return=representation'}),body:JSON.stringify(row)});
+  if(!res.ok) throw new Error(await res.text());
+}
+async function unjoinSharedRide(id){
+  const url=`${JOINERS_API}?ride_id=eq.${encodeURIComponent(id)}&device_id=eq.${encodeURIComponent(getDeviceId())}`;
+  const res=await fetch(url,{method:'DELETE',headers:sbHeaders()});
+  if(!res.ok) throw new Error(await res.text());
+}
+function joinerNames(r){return (r.joiners||[]).map(j=>j.name).filter(Boolean)}
+
+function rideHtml(r, compact=false){
+ const owner=isOwner(r), names=joinerNames(r);
+ return `<div class="card ride-card" data-openride="${r.id}">
+  <div class="ride-title"><b>${esc(r.name)}</b><span class="badge">${esc(r.level)}</span></div>
+  <div class="meta"><span>📅 ${fmtDate(r.date)} ${esc(r.time||'')}</span><span>📍 ${esc(r.place)}</span><span>📏 ${r.km||0} ק"מ</span><span>👥 ${r.people||0}</span></div>
+  ${compact?'':`<div class="small"><b>נפתח על ידי: ${esc(r.creatorName||'לא צוין')}</b>${names.length?`<br><b>מצטרפים:</b> ${names.map(esc).join(', ')}`:''}${r.notes?`<br>${esc(r.notes)}`:''}</div>
+  <div class="actions">
+    <button class="btn" data-openride="${r.id}">פתח רכיבה</button>
+    <button class="btn ${r.joined?'secondary':''}" data-join="${r.id}">${r.joined?'✓ הצטרפת':'אני מצטרף'}</button>
+    <a class="btn green" href="https://chat.whatsapp.com/DDvoj1Bnoyb4xGf3kk8Wij?s=cl&p=a&mlu=4" target="_blank" rel="noopener">WhatsApp לקבוצה</a>
+    ${r.gpxName?`<span class="badge">GPX: ${esc(r.gpxName)}</span>`:''}
+    ${owner?`<button class="btn orange" data-editride="${r.id}">עריכת רכיבה</button><button class="btn red" data-delride="${r.id}">מחיקת רכיבה</button>`:(!r.creatorId?`<button class="btn secondary" data-claimride="${r.id}">זו רכיבה שאני פתחתי</button>`:'')}
+  </div>`}
+ </div>`;
+}
+
+function wazeUrlFor(r){
+  const direct=(r.wazeUrl||'').trim();
+  if(direct) return direct;
+  return `https://waze.com/ul?q=${encodeURIComponent(r.place||'')}&navigate=yes`;
+}
+function downloadRideGpx(id){
+  const r=rides.find(x=>x.id==id);
+  if(!r || !r.gpxData){toast('לקובץ הישן נשמר רק השם. צרף אותו מחדש לרכיבה.');return}
+  const blob=new Blob([r.gpxData],{type:'application/gpx+xml'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=r.gpxName||'route.gpx';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function openRide(id){
+  const r=rides.find(x=>x.id==id); if(!r)return;
+  const names=joinerNames(r), owner=isOwner(r);
+  $('#rideDetailContent').innerHTML=`<div class="card">
+    <div class="ride-title"><h2 style="margin:0">${esc(r.name)}</h2><span class="badge">${esc(r.level)}</span></div>
+    <div class="meta" style="font-size:15px;margin-top:14px"><span>📅 ${fmtDate(r.date)} ${esc(r.time||'')}</span><span>📍 ${esc(r.place)}</span><span>📏 ${r.km||0} ק"מ</span><span>👥 ${r.people||0}</span></div>
+    <p><b>נפתח על ידי: ${esc(r.creatorName||'לא צוין')}</b></p>
+    <p><b>מצטרפים:</b> ${names.length?names.map(esc).join(', '):'עדיין אין מצטרפים'}</p>
+    ${r.notes?`<p style="line-height:1.6">${esc(r.notes)}</p>`:''}<hr>
+    <div class="actions">
+      <button class="btn ${r.joined?'secondary':''}" data-detailjoin="${r.id}">${r.joined?'✓ הצטרפת — בטל הצטרפות':'אני מצטרף'}</button>
+      <a class="btn orange" href="${esc(wazeUrlFor(r))}" target="_blank" rel="noopener">📍 פתח ב-Waze</a>
+      ${r.gpxData?`<button class="btn" data-downloadgpx="${r.id}">🗺️ פתח / הורד GPX</button>`:r.gpxName?`<button class="btn secondary" data-downloadgpx="${r.id}">🗺️ GPX: ${esc(r.gpxName)}</button>`:`<button class="btn secondary" disabled>🗺️ לא צורף GPX</button>`}
+      <a class="btn green" href="https://chat.whatsapp.com/DDvoj1Bnoyb4xGf3kk8Wij?s=cl&p=a&mlu=4" target="_blank" rel="noopener">💬 WhatsApp</a>
+      ${owner?`<button class="btn orange" data-detailedit="${r.id}">✏️ עריכת רכיבה</button><button class="btn red" data-detaildel="${r.id}">🗑️ מחיקת רכיבה</button>`:(!r.creatorId?`<button class="btn secondary" data-detailclaim="${r.id}">זו רכיבה שאני פתחתי</button>`:'')}
+    </div>
+  </div>`;
+  $$('[data-downloadgpx]').forEach(b=>b.onclick=()=>downloadRideGpx(b.dataset.downloadgpx));
+  $$('[data-detailjoin]').forEach(b=>b.onclick=()=>toggleJoin(b.dataset.detailjoin,true));
+  $$('[data-detailedit]').forEach(b=>b.onclick=()=>startEditRide(b.dataset.detailedit));
+  $$('[data-detaildel]').forEach(b=>b.onclick=()=>removeRide(b.dataset.detaildel));
+  $$('[data-detailclaim]').forEach(b=>b.onclick=()=>claimRide(b.dataset.detailclaim,true));
+  go('rideDetail');
+}
+$('#backToRides').onclick=()=>go('rides');
+
+function renderRides(){
+ $('#ridesList').innerHTML=rides.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).map(r=>rideHtml(r)).join('');
+ const future=rides.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))[0];
+ $('#nextRide').innerHTML=future?rideHtml(future,true):'<div class="card">אין רכיבות קרובות.</div>';
+ bindRideActions();
+}
+async function toggleJoin(id,reopen=false){
+  const r=rides.find(x=>x.id==id);if(!r)return;
+  const name=getProfileName();if(!name){go('profile');toast('יש לשמור שם בפרופיל לפני הצטרפות');return}
+  try{
+    if(r.joined){await unjoinSharedRide(r.id);toast('ההצטרפות בוטלה')}else{await joinSharedRide(r.id,name);toast('הצטרפת לרכיבה')}
+    await loadSharedRides(); if(reopen) openRide(id);
+  }catch(e){console.error(e);toast('לא ניתן לשמור את ההצטרפות')}
+}
+async function claimRide(id,reopen=false){
+  const r=rides.find(x=>x.id==id); if(!r)return;
+  if(r.creatorId){toast('לרכיבה הזאת כבר יש פותח רשום');return}
+  const name=getProfileName(); if(!name){go('profile');toast('יש לשמור שם בפרופיל לפני לקיחת בעלות');return}
+  if(!confirm(`לאשר שאתה פתחת את הרכיבה: ${r.name}?`))return;
+  try{await claimSharedRide(id);await loadSharedRides();toast('הרכיבה שויכה אליך');if(reopen)openRide(id)}catch(e){console.error(e);toast('לא ניתן לשייך את הרכיבה')};
+}
+async function removeRide(id){
+  const r=rides.find(x=>x.id==id);if(!isOwner(r)){toast('רק מי שפתח את הרכיבה יכול למחוק אותה');return}
+  if(!confirm('למחוק את הרכיבה?'))return;
+  try{await deleteSharedRide(id);await loadSharedRides();go('rides');toast('הרכיבה נמחקה')}catch(e){console.error(e);toast('לא ניתן למחוק את הרכיבה')}
+}
+function bindRideActions(){
+ $$('[data-openride]').forEach(el=>el.onclick=e=>{e.stopPropagation();openRide(el.dataset.openride)});
+ $$('[data-join]').forEach(b=>b.onclick=e=>{e.stopPropagation();toggleJoin(b.dataset.join)});
+ $$('[data-editride]').forEach(b=>b.onclick=e=>{e.stopPropagation();startEditRide(b.dataset.editride)});
+ $$('[data-delride]').forEach(b=>b.onclick=e=>{e.stopPropagation();removeRide(b.dataset.delride)});
+ $$('[data-claimride]').forEach(b=>b.onclick=e=>{e.stopPropagation();claimRide(b.dataset.claimride)});
+}
+let editingRideId=null;
+function resetRideForm(){
+  editingRideId=null;$('#rideForm').reset();$('#rideFormTitle').textContent='פתיחת רכיבה חדשה';$('#rideSubmitBtn').textContent='פרסם רכיבה';$('#rideFormWrap').style.display='none';
+}
+function startEditRide(id){
+  const r=rides.find(x=>x.id==id);if(!isOwner(r)){toast('רק מי שפתח את הרכיבה יכול לערוך אותה');return}
+  editingRideId=r.id; go('rides'); $('#rideFormWrap').style.display='block';
+  $('#rideFormTitle').textContent='עריכת רכיבה';$('#rideSubmitBtn').textContent='שמור שינויים';
+  $('#rideName').value=r.name||'';$('#rideDate').value=r.date||'';$('#rideTime').value=r.time||'';$('#ridePlace').value=r.place||'';$('#rideWaze').value=r.wazeUrl||'';$('#rideKm').value=r.km||'';$('#rideLevel').value=r.level||'בינוני';$('#rideNotes').value=r.notes||'';$('#rideGpx').value='';
+  scrollTo({top:0,behavior:'smooth'});
+}
+function renderRiders(){
+ if(!riders.length){$('#ridersList').innerHTML='<div class="card"><p class="small">עדיין אין רוכבים רשומים.</p></div>';return}
+ $('#ridersList').innerHTML=riders.map(r=>`<div class="card rider"><div class="avatar" style="display:grid;place-items:center;font-size:22px">👤</div><div><h4>${esc(r.name)}</h4><p>${esc(r.area||'')}${r.area&&r.bike?' • ':''}${esc(r.bike||'')}</p></div></div>`).join('');
+}
+async function loadSharedProfiles(){
+ try{
+   const res=await fetch(`${PROFILES_API}?select=device_id,name,area,bike,updated_at&order=name.asc`,{headers:sbHeaders()});
+   if(!res.ok) throw new Error(await res.text());
+   const rows=await res.json();
+   riders=rows.map(r=>({id:r.device_id,deviceId:r.device_id,name:r.name||'',area:r.area||'',bike:r.bike||''}));
+   renderRiders();
+ }catch(err){console.error(err);riders=[];renderRiders();}
+}
+async function saveSharedProfile(profile){
+ const row={device_id:getDeviceId(),name:profile.name,area:profile.area||'',bike:profile.bike||'',updated_at:new Date().toISOString()};
+ const res=await fetch(PROFILES_API,{method:'POST',headers:sbHeaders({'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=representation'}),body:JSON.stringify(row)});
+ if(!res.ok) throw new Error(await res.text());
+ return res.json();
+}
+function renderRoutes(){
+ $('#routesList').innerHTML=routes.map(r=>`<div class="card"><div class="ride-title"><b>${esc(r.name)}</b><span class="badge">${esc(r.level)}</span></div><div class="meta"><span>📍 ${esc(r.area)}</span><span>📏 ${r.km||0} ק"מ</span><span>⬆️ ${r.climb||0} מ'</span></div><div class="actions">${r.gpxName?`<span class="badge">GPX: ${esc(r.gpxName)}</span>`:''}<button class="btn secondary admin-only" data-route2ride="${r.id}">צור רכיבה מהמסלול</button><button class="btn secondary admin-only" data-delroute="${r.id}">מחיקה</button></div></div>`).join('');
+ $$('[data-delroute]').forEach(b=>b.onclick=()=>{if(confirm('למחוק מסלול?')){routes=routes.filter(x=>x.id!=b.dataset.delroute);LS.set('rv_routes',routes);renderRoutes()}});
+ $$('[data-route2ride]').forEach(b=>b.onclick=()=>{const r=routes.find(x=>x.id==b.dataset.route2ride); if(!r)return; resetRideForm();go('rides');$('#rideFormWrap').style.display='block';$('#rideName').value=r.name;$('#ridePlace').value=r.area;$('#rideKm').value=r.km||'';$('#rideLevel').value=r.level||'בינוני';toast('המסלול הועבר לטופס הרכיבה')});
+}
+$('#toggleRideForm').onclick=()=>{if($('#rideFormWrap').style.display==='none'){resetRideForm();$('#rideFormWrap').style.display='block'}else resetRideForm()};
+$('#cancelRideEdit').onclick=resetRideForm;
+const toggleRiderForm=$('#toggleRiderForm'); if(toggleRiderForm) toggleRiderForm.onclick=()=>{};
+$('#toggleRouteForm').onclick=()=>$('#routeFormWrap').style.display=$('#routeFormWrap').style.display==='none'?'block':'none';
+
+$('#rideForm').onsubmit=async e=>{
+ e.preventDefault();
+ const profileName=getProfileName(); if(!profileName){go('profile');toast('יש לשמור שם בפרופיל לפני פתיחת רכיבה');return}
+ const existing=editingRideId?rides.find(x=>x.id==editingRideId):null;
+ if(editingRideId && !isOwner(existing)){toast('רק מי שפתח את הרכיבה יכול לערוך אותה');return}
+ const f=$('#rideGpx').files[0]; let gpxData=existing?.gpxData||'',gpxName=existing?.gpxName||'';
+ if(f){try{gpxData=await f.text();gpxName=f.name}catch{toast('לא הצלחתי לקרוא את קובץ ה-GPX');return}}
+ const ride={
+   id:editingRideId||Date.now(),name:$('#rideName').value.trim(),date:$('#rideDate').value,time:$('#rideTime').value,
+   place:$('#ridePlace').value.trim(),wazeUrl:$('#rideWaze').value.trim(),km:+$('#rideKm').value||0,level:$('#rideLevel').value,notes:$('#rideNotes').value.trim(),
+   gpxName,gpxData,creatorName:existing?.creatorName||profileName,creatorId:existing?.creatorId||getDeviceId()
+ };
+ try{
+   if(editingRideId){await updateSharedRide(ride);toast('השינויים נשמרו')}else{await insertSharedRide(ride);toast('הרכיבה נוספה')}
+   const id=ride.id;resetRideForm();await loadSharedRides();openRide(id);
+ }catch(err){console.error(err);toast(editingRideId?'לא ניתן לשמור את השינויים':'לא ניתן להוסיף את הרכיבה')}
+};
+$('#riderForm').onsubmit=e=>{
+ e.preventDefault();
+ riders.push({id:Date.now(),name:$('#riderName').value.trim(),area:$('#riderArea').value.trim(),bike:$('#riderBike').value.trim(),level:$('#riderLevel').value,phone:$('#riderPhone').value.trim()});
+ LS.set('rv_riders',riders); e.target.reset(); $('#riderFormWrap').style.display='none'; renderRiders(); toast('הרוכב נוסף');
+};
+$('#routeForm').onsubmit=e=>{
+ e.preventDefault(); const f=$('#routeGpx').files[0];
+ routes.push({id:Date.now(),name:$('#routeName').value.trim(),area:$('#routeArea').value.trim(),km:+$('#routeKm').value||0,climb:+$('#routeClimb').value||0,level:$('#routeLevel').value,gpxName:f?f.name:''});
+ LS.set('rv_routes',routes); e.target.reset(); $('#routeFormWrap').style.display='none'; renderRoutes(); toast('המסלול נוסף');
+};
+
+let watchId=null, recStart=0, recTimer=null, points=[], totalM=0, lastPos=null;
+function dist(a,b){const R=6371000, toRad=x=>x*Math.PI/180;const dLat=toRad(b.lat-a.lat),dLon=toRad(b.lon-a.lon),la1=toRad(a.lat),la2=toRad(b.lat);const h=Math.sin(dLat/2)**2+Math.cos(la1)*Math.cos(la2)*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
+function updateTimer(){const s=Math.floor((Date.now()-recStart)/1000),h=String(Math.floor(s/3600)).padStart(2,'0'),m=String(Math.floor((s%3600)/60)).padStart(2,'0'),ss=String(s%60).padStart(2,'0');$('#timer').textContent=`${h}:${m}:${ss}`}
+$('#startRec').onclick=()=>{
+ if(!navigator.geolocation){toast('GPS לא נתמך בדפדפן הזה');return}
+ points=[];totalM=0;lastPos=null;recStart=Date.now();updateTimer();recTimer=setInterval(updateTimer,1000);
+ $('#startRec').disabled=true;$('#stopRec').disabled=false;$('#exportRec').disabled=true;$('#rideFromRec').disabled=true;$('#gpsStatus').textContent='מבקש מיקום...';
+ watchId=navigator.geolocation.watchPosition(p=>{
+   const x={lat:p.coords.latitude,lon:p.coords.longitude,ele:p.coords.altitude,time:new Date().toISOString(),speed:p.coords.speed};
+   if(lastPos){const d=dist(lastPos,x); if(d<200) totalM+=d}
+   points.push(x);lastPos=x;$('#recKm').textContent=(totalM/1000).toFixed(2);$('#recPoints').textContent=points.length;$('#recSpeed').textContent=p.coords.speed!=null?Math.max(0,p.coords.speed*3.6).toFixed(1):'—';$('#gpsStatus').textContent='מקליט GPS';
+ },err=>{$('#gpsStatus').textContent='שגיאת מיקום: '+err.message},{enableHighAccuracy:true,maximumAge:1000,timeout:15000});
+};
+$('#stopRec').onclick=()=>{
+ if(watchId!==null) navigator.geolocation.clearWatch(watchId); watchId=null; clearInterval(recTimer);recTimer=null;
+ $('#startRec').disabled=false;$('#stopRec').disabled=true;$('#exportRec').disabled=points.length<2;$('#rideFromRec').disabled=points.length<2;$('#gpsStatus').textContent=`ההקלטה הסתיימה • ${points.length} נקודות`;
+};
+function gpxText(){
+ const trk=points.map(p=>`<trkpt lat="${p.lat}" lon="${p.lon}">${p.ele!=null?`<ele>${p.ele}</ele>`:''}<time>${p.time}</time></trkpt>`).join('');
+ return `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="רוכבים ונהנים" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>רוכבים ונהנים</name><trkseg>${trk}</trkseg></trk></gpx>`;
+}
+$('#exportRec').onclick=()=>{const blob=new Blob([gpxText()],{type:'application/gpx+xml'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`ride-${new Date().toISOString().slice(0,10)}.gpx`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+$('#rideFromRec').onclick=()=>{resetRideForm();go('rides');$('#rideFormWrap').style.display='block';$('#rideName').value='רכיבה מהמסלול שהוקלט';$('#rideKm').value=(totalM/1000).toFixed(1);toast('נתוני ההקלטה הועברו לרכיבה חדשה')};
+
+$('#profileForm').onsubmit=async e=>{e.preventDefault();const name=$('#profileName').value.trim();if(!name){toast('יש להזין שם');return}const profile={name,area:$('#profileArea').value.trim(),bike:$('#profileBike').value.trim()};LS.set('rv_profile',profile);try{await saveSharedProfile(profile);await loadSharedProfiles();toast('הפרופיל נשמר ומופיע ברשימת הרוכבים')}catch(err){console.error(err);toast('הפרופיל נשמר בטלפון, אך לא נשמר בענן')}};
+const prof=LS.get('rv_profile',null); if(prof){$('#profileName').value=prof.name||'';$('#profileArea').value=prof.area||'';$('#profileBike').value=prof.bike||''}
+$('#resetDemo').onclick=()=>{if(confirm('לאפס את כל הנתונים המקומיים?')){localStorage.removeItem('rv_rides');localStorage.removeItem('rv_riders');localStorage.removeItem('rv_routes');location.reload()}};
+
+let deferredPrompt=null;
+function isStandalone(){return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true}
+function updateInstallUI(){
+  const box=$('#installBox'); if(!box)return;
+  if(isStandalone()){box.style.display='none';return}
+  box.style.display='block';
+}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;updateInstallUI();$('#installHelp').style.display='none'});
+window.addEventListener('appinstalled',()=>{$('#installBox').style.display='none';deferredPrompt=null;toast('האפליקציה הותקנה')});
+$('#installBtn').onclick=async()=>{
+  if(isStandalone()){updateInstallUI();return}
+  if(deferredPrompt){deferredPrompt.prompt();const choice=await deferredPrompt.userChoice;if(choice.outcome==='accepted')$('#installBox').style.display='none';deferredPrompt=null;return}
+  $('#installHelp').style.display='block';toast('בתפריט Chrome בחר: התקנה ויצירת קיצור דרך → התקנת אפליקציה');
+};
+updateInstallUI();
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js', {scope:'./'}).catch(()=>{}))}
+initAdminMode().then(async()=>{
+  renderRoutes();
+  await Promise.all([loadSharedRides(),loadSharedProfiles()]);
+  const localProfile=LS.get('rv_profile',null);
+  if(localProfile?.name){try{await saveSharedProfile(localProfile);await loadSharedProfiles()}catch(err){console.error(err)}}
+  setInterval(()=>{loadSharedRides();loadSharedProfiles()},15000);
+});
+const adminLogout=$('#adminLogout');
+if(adminLogout) adminLogout.onclick=()=>{
+  localStorage.removeItem('rv_admin');
+  document.body.classList.remove('admin-mode');
+  toast('יצאת ממצב מנהל');
+  setTimeout(()=>location.reload(),500);
+};
+</script>
+</body>
+</html>
