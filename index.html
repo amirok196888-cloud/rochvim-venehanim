@@ -353,7 +353,7 @@ async function deleteSharedRide(id){
 }
 async function joinSharedRide(id,name){
   const row={ride_id:id,device_id:getDeviceId(),rider_name:name};
-  const res=await fetch(JOINERS_API,{method:'POST',headers:sbHeaders({'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=representation'}),body:JSON.stringify(row)});
+  const res=await fetch(JOINERS_API,{method:'POST',headers:sbHeaders({'Content-Type':'application/json','Prefer':'return=representation'}),body:JSON.stringify(row)});
   if(!res.ok) throw new Error(await res.text());
 }
 async function unjoinSharedRide(id){
